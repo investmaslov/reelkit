@@ -1,4 +1,7 @@
-import { useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useId, useRef, useState, type CSSProperties } from "react";
+import { fmt } from "./time";
+import { Ruler } from "./Ruler";
+import { Icon } from "./icons";
 
 /** Подписи (i18n) — англ. по умолчанию, потребитель переопределяет. */
 export interface ReelPreviewLabels {
@@ -56,83 +59,6 @@ export interface ReelPreviewProps {
   radius?: number;
   /** Переопределение подписей (aria/title). */
   labels?: Partial<ReelPreviewLabels>;
-}
-
-function fmt(s: number, precision: "cs" | "ms"): string {
-  if (!Number.isFinite(s) || s < 0) s = 0;
-  const m = Math.floor(s / 60);
-  const sec = Math.floor(s % 60);
-  const fracDigits = precision === "ms" ? 3 : 2;
-  const frac = Math.floor((s % 1) * (precision === "ms" ? 1000 : 100))
-    .toString()
-    .padStart(fracDigits, "0");
-  return `${m}:${sec.toString().padStart(2, "0")}.${frac}`;
-}
-
-/** Риски линейки: выбираем «крупный» шаг (секунды) так, чтобы их было ≤10, мелкий —
- *  пятая доля крупного. Крупные подписываем `m:ss`. Позиция в % от длительности. */
-function computeMarks(duration: number): { pos: number; major: boolean; label: string | null }[] {
-  if (!Number.isFinite(duration) || duration <= 0) return [];
-  const majorCand = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600];
-  let major = majorCand[majorCand.length - 1];
-  for (const c of majorCand) {
-    if (duration / c <= 10) { major = c; break; }
-  }
-  const minor = major / 5;
-  const marks: { pos: number; major: boolean; label: string | null }[] = [];
-  const n = Math.floor(duration / minor + 1e-6);
-  for (let i = 0; i <= n; i++) {
-    const t = i * minor;
-    const isMajor = i % 5 === 0;
-    const mm = Math.floor(t / 60);
-    const ss = Math.floor(t % 60);
-    marks.push({
-      pos: (t / duration) * 100,
-      major: isMajor,
-      label: isMajor ? `${mm}:${ss.toString().padStart(2, "0")}` : null,
-    });
-  }
-  return marks;
-}
-
-/** Линейка-таймкод: тонкие риски во всю ширину, крупные — на секундах с подписью. */
-function Ruler({ duration }: { duration: number }) {
-  const marks = computeMarks(duration);
-  return (
-    <div aria-hidden style={{ position: "relative", height: 15, width: "100%" }}>
-      {marks.map((m, i) => (
-        <div
-          key={i}
-          style={{
-            position: "absolute",
-            left: `${m.pos}%`,
-            bottom: 0,
-            width: 1,
-            height: m.major ? 9 : 5,
-            background: m.major ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.22)",
-          }}
-        >
-          {m.label != null && (
-            <span
-              style={{
-                position: "absolute",
-                bottom: 10,
-                left: 0,
-                transform: m.pos < 4 ? "translateX(0)" : m.pos > 96 ? "translateX(-100%)" : "translateX(-50%)",
-                fontSize: 8,
-                lineHeight: 1,
-                color: "rgba(255,255,255,0.55)",
-                fontVariantNumeric: "tabular-nums",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {m.label}
-            </span>
-          )}
-        </div>
-      ))}
-    </div>
-  );
 }
 
 const BTN: CSSProperties = {
@@ -345,38 +271,3 @@ export function ReelPreview({
     </div>
   );
 }
-
-// ── Инлайн-иконки (без внешних зависимостей) ────────────────────────────────
-type IconProps = { size?: number; style?: CSSProperties };
-const svg = (size: number, style: CSSProperties | undefined, children: ReactNode) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={2}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    style={style}
-    aria-hidden
-  >
-    {children}
-  </svg>
-);
-const Icon = {
-  Play: ({ size = 16, style }: IconProps) =>
-    svg(size, style, <path d="M6 4l14 8-14 8z" fill="currentColor" stroke="none" />),
-  Pause: ({ size = 16, style }: IconProps) =>
-    svg(size, style, <><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none" /><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none" /></>),
-  StepBack: ({ size = 16, style }: IconProps) =>
-    svg(size, style, <><path d="M18 5v14l-9-7z" fill="currentColor" stroke="none" /><line x1="6" y1="5" x2="6" y2="19" /></>),
-  StepForward: ({ size = 16, style }: IconProps) =>
-    svg(size, style, <><path d="M6 5v14l9-7z" fill="currentColor" stroke="none" /><line x1="18" y1="5" x2="18" y2="19" /></>),
-  Volume: ({ size = 16, style }: IconProps) =>
-    svg(size, style, <><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor" stroke="none" /><path d="M16 8a5 5 0 010 8" /></>),
-  VolumeOff: ({ size = 16, style }: IconProps) =>
-    svg(size, style, <><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor" stroke="none" /><line x1="16" y1="9" x2="21" y2="15" /><line x1="21" y1="9" x2="16" y2="15" /></>),
-  Fullscreen: ({ size = 16, style }: IconProps) =>
-    svg(size, style, <path d="M4 9V5a1 1 0 011-1h4M20 9V5a1 1 0 00-1-1h-4M4 15v4a1 1 0 001 1h4M20 15v4a1 1 0 01-1 1h-4" />),
-};
