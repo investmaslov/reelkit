@@ -1,0 +1,55 @@
+# reelkit
+
+Minimalist React primitives for **short-reel preview & timeline editing** — a scrub player
+with sub-second precision, (soon) timeline tracks and an editable caption layer.
+
+Self-contained: only `react` as a peer dependency, no Tailwind or CSS import required — all
+styling is inline, so it drops into any React app.
+
+> Not a render engine. reelkit is the **preview / editing layer**; render your final MP4 with
+> your own pipeline (FFmpeg, a cloud API, …). Keep preview ↔ render in sync via a shared
+> caption spec.
+
+## Install
+
+```bash
+npm i reelkit
+# or from GitHub:
+npm i github:<owner>/reelkit
+```
+
+## Usage
+
+```tsx
+import { ReelPreview } from "reelkit";
+
+<ReelPreview
+  src={url}
+  className="my-frame"        // set the frame via your own CSS (e.g. aspect-ratio: 9/16)
+  accent="#8b5cf6"           // scrubber / thumb color
+  fps={30}                    // frame-step size for the ⟨ ⟩ arrows
+  precision="cs"             // "cs" → 0:03.24 (default) · "ms" → 0:03.240
+/>
+```
+
+### Props (`ReelPreview`)
+
+| prop | type | default | notes |
+|------|------|---------|-------|
+| `src` | `string` | — | video URL (mp4/webm/object URL) |
+| `poster` | `string?` | — | poster frame before play |
+| `className` / `style` | — | — | container — set the frame/size here |
+| `accent` | `string` | `#8b5cf6` | scrubber fill + thumb ring |
+| `fps` | `number` | `30` | frame-step (`⟨`/`⟩`) size = `1/fps` |
+| `precision` | `"cs" \| "ms"` | `"cs"` | timer sub-second precision |
+| `labels` | `Partial<ReelPreviewLabels>` | English | aria/title text (i18n) |
+
+## Roadmap
+
+- `Timeline` — video / audio / caption tracks with a playhead synced to the video.
+- `CaptionLayer` — editable caption overlay (font / size / position / timing).
+- `CaptionSpec` — one JSON spec that drives both the preview and your renderer.
+
+## License
+
+Apache-2.0
