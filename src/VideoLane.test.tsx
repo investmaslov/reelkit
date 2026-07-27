@@ -83,4 +83,27 @@ describe("VideoLane", () => {
     expect(onMuteToggle).toHaveBeenCalledWith("a");
     expect(onReorder).not.toHaveBeenCalled();
   });
+
+  it("pointerdown на mute-кнопке не начинает драг (guard data-nodrag реально отрабатывает)", () => {
+    const onReorder = vi.fn();
+    render(
+      <VideoLane
+        items={[{ id: "a", label: "1", muted: false, volume: 1 }, { id: "b", label: "2", muted: false, volume: 1 }]}
+        activeId={null}
+        onReorder={onReorder}
+        onMuteToggle={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    const muteButton = screen.getAllByRole("button")[0];
+    const b = screen.getByText("2");
+    const spy = vi.spyOn(document, "elementFromPoint").mockReturnValue(b);
+
+    fireEvent.pointerDown(muteButton);
+    fireEvent.pointerMove(window);
+    fireEvent.pointerUp(window);
+
+    expect(onReorder).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
 });
