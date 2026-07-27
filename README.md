@@ -52,8 +52,9 @@ import { ReelPreview } from "reelkit";
 
 ## Author
 
-Vladimir Maslov
-GitHub: https://github.com/investmaslov
+**Vladimir Maslov**
+
+GitHub: [@investmaslov](https://github.com/investmaslov)
 
 ## License
 
