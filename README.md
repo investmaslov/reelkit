@@ -42,6 +42,10 @@ import { ReelPreview } from "reelkit";
 | `accent` | `string` | `#8b5cf6` | scrubber fill + thumb ring |
 | `fps` | `number` | `30` | frame-step (`⟨`/`⟩`) size = `1/fps` |
 | `precision` | `"cs" \| "ms"` | `"cs"` | timer sub-second precision |
+| `natural` | `boolean` | `false` | video sets its own height by aspect (vs. filling a fixed frame) |
+| `ruler` | `boolean` | `true` | timecode ruler with second / sub-second ticks |
+| `controls` | `"overlay" \| "panel"` | `"overlay"` | controls over the video, or in a panel below it |
+| `radius` | `number` | `14` | container corner radius (px); `0` for square corners |
 | `labels` | `Partial<ReelPreviewLabels>` | English | aria/title text (i18n) |
 
 ## Roadmap
