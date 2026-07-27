@@ -38,6 +38,12 @@ export interface ReelPreviewProps {
   fps?: number;
   /** Точность таймера: "cs" — сотые (0:03.24, по умолчанию), "ms" — миллисекунды (0:03.240). */
   precision?: "cs" | "ms";
+  /** Как вписывать видео в контейнер:
+   *  - `false` (по умолчанию): контейнер задаёт кадр (через className aspect/height),
+   *    видео заполняет его с `object-fit: contain` — стабильная рамка (напр. 9:16);
+   *  - `true`: высоту задаёт САМО видео по своему аспекту (контейнер подстраивается) —
+   *    для мест, где рамка заранее неизвестна и нужен «естественный» размер. */
+  natural?: boolean;
   /** Переопределение подписей (aria/title). */
   labels?: Partial<ReelPreviewLabels>;
 }
@@ -77,6 +83,7 @@ export function ReelPreview({
   accent = "#8b5cf6",
   fps = 30,
   precision = "cs",
+  natural = false,
   labels,
 }: ReelPreviewProps) {
   const L = { ...DEFAULT_LABELS, ...labels };
@@ -136,7 +143,11 @@ export function ReelPreview({
         onTimeUpdate={(e) => setCurrent(e.currentTarget.currentTime)}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || 0)}
         onEnded={() => setPlaying(false)}
-        style={{ height: "100%", width: "100%", objectFit: "contain", display: "block" }}
+        style={
+          natural
+            ? { width: "100%", height: "auto", display: "block" }
+            : { height: "100%", width: "100%", objectFit: "contain", display: "block" }
+        }
       />
 
       {!playing && (
