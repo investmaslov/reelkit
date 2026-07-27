@@ -44,6 +44,9 @@ export interface ReelPreviewProps {
    *  - `true`: высоту задаёт САМО видео по своему аспекту (контейнер подстраивается) —
    *    для мест, где рамка заранее неизвестна и нужен «естественный» размер. */
   natural?: boolean;
+  /** Линейка-таймкод над скрабом: крупные риски на секундах (с подписью `m:ss`)
+   *  и мелкие на долях секунды — как у профи-редакторов. По умолчанию включена. */
+  ruler?: boolean;
   /** Переопределение подписей (aria/title). */
   labels?: Partial<ReelPreviewLabels>;
 }
@@ -57,6 +60,72 @@ function fmt(s: number, precision: "cs" | "ms"): string {
     .toString()
     .padStart(fracDigits, "0");
   return `${m}:${sec.toString().padStart(2, "0")}.${frac}`;
+}
+
+/** Риски линейки: выбираем «крупный» шаг (секунды) так, чтобы их было ≤10, мелкий —
+ *  пятая доля крупного. Крупные подписываем `m:ss`. Позиция в % от длительности. */
+function computeMarks(duration: number): { pos: number; major: boolean; label: string | null }[] {
+  if (!Number.isFinite(duration) || duration <= 0) return [];
+  const majorCand = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600];
+  let major = majorCand[majorCand.length - 1];
+  for (const c of majorCand) {
+    if (duration / c <= 10) { major = c; break; }
+  }
+  const minor = major / 5;
+  const marks: { pos: number; major: boolean; label: string | null }[] = [];
+  const n = Math.floor(duration / minor + 1e-6);
+  for (let i = 0; i <= n; i++) {
+    const t = i * minor;
+    const isMajor = i % 5 === 0;
+    const mm = Math.floor(t / 60);
+    const ss = Math.floor(t % 60);
+    marks.push({
+      pos: (t / duration) * 100,
+      major: isMajor,
+      label: isMajor ? `${mm}:${ss.toString().padStart(2, "0")}` : null,
+    });
+  }
+  return marks;
+}
+
+/** Линейка-таймкод: тонкие риски во всю ширину, крупные — на секундах с подписью. */
+function Ruler({ duration }: { duration: number }) {
+  const marks = computeMarks(duration);
+  return (
+    <div aria-hidden style={{ position: "relative", height: 15, width: "100%" }}>
+      {marks.map((m, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            left: `${m.pos}%`,
+            bottom: 0,
+            width: 1,
+            height: m.major ? 9 : 5,
+            background: m.major ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.22)",
+          }}
+        >
+          {m.label != null && (
+            <span
+              style={{
+                position: "absolute",
+                bottom: 10,
+                left: 0,
+                transform: m.pos < 4 ? "translateX(0)" : m.pos > 96 ? "translateX(-100%)" : "translateX(-50%)",
+                fontSize: 8,
+                lineHeight: 1,
+                color: "rgba(255,255,255,0.55)",
+                fontVariantNumeric: "tabular-nums",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {m.label}
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 const BTN: CSSProperties = {
@@ -84,6 +153,7 @@ export function ReelPreview({
   fps = 30,
   precision = "cs",
   natural = false,
+  ruler = true,
   labels,
 }: ReelPreviewProps) {
   const L = { ...DEFAULT_LABELS, ...labels };
@@ -127,7 +197,7 @@ export function ReelPreview({
     >
       {/* тонкий скраб — псевдоэлементы через инъекцию <style> (инлайн их не умеет) */}
       <style>{`
-        .rk-${scrubId}{-webkit-appearance:none;appearance:none;height:3px;border-radius:9px;outline:none;cursor:pointer}
+        .rk-${scrubId}{-webkit-appearance:none;appearance:none;height:4px;border-radius:9px;outline:none;cursor:pointer}
         .rk-${scrubId}::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:11px;height:11px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px ${accent}66;cursor:grab}
         .rk-${scrubId}::-moz-range-thumb{width:11px;height:11px;border:none;border-radius:50%;background:#fff;box-shadow:0 0 0 3px ${accent}66;cursor:grab}
       `}</style>
@@ -186,6 +256,7 @@ export function ReelPreview({
           background: "linear-gradient(to top, rgba(0,0,0,0.82), transparent)",
         }}
       >
+        {ruler && duration > 0 && <Ruler duration={duration} />}
         <input
           type="range"
           className={`rk-${scrubId}`}
