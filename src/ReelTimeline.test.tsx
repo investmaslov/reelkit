@@ -65,10 +65,10 @@ describe("ReelTimeline", () => {
     const { container } = render(
       <ReelTimeline videoLane={[{ id: "a1", src: "https://x/a1.mp4", label: "1", muted: false, volume: 1 }]} audioLanes={[]} />,
     );
-    const playButtons = container.querySelectorAll("button");
-    fireEvent.click(playButtons[0]);
-    // после клика скрытый <video> реально пытается .play() — замокан в beforeEach, не бросает.
-    expect(container.querySelectorAll("video").length).toBeGreaterThan(0);
+    const playButton = container.querySelectorAll("button")[0];
+    expect(playButton.querySelector("rect")).toBeNull();
+    fireEvent.click(playButton);
+    expect(playButton.querySelector("rect")).not.toBeNull();
   });
 
   it("mute/громкость аудио-лейна прокидываются с правильным laneId", () => {

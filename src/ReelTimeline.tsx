@@ -86,7 +86,7 @@ export function ReelTimeline({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeVideo?.item.id, playing]);
+  }, [activeVideo?.item.id, playing, current, videoLane]);
 
   // Аудио играет независимо от видео-границ — по СВОЕМУ start/duration.
   useEffect(() => {
