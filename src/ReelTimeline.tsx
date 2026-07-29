@@ -213,7 +213,7 @@ export function ReelTimeline({
           (rk-${scrubId}): нативный range, но перекрашен в тонкую полоску с
           маленьким кружком-держателем — компактнее нативного вида. */}
       <style>{`
-        .rk-tl-${scrubId}{-webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:9px;background:rgba(255,255,255,0.14);outline:none;cursor:pointer}
+        .rk-tl-${scrubId}{-webkit-appearance:none;appearance:none;display:block;width:100%;height:3px;margin:0;padding:0;border-radius:9px;background:rgba(255,255,255,0.14);outline:none;cursor:pointer;vertical-align:middle}
         .rk-tl-${scrubId}::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:9px;height:9px;border-radius:50%;background:#8b5cf6;cursor:grab}
         .rk-tl-${scrubId}::-moz-range-thumb{width:9px;height:9px;border:none;border-radius:50%;background:#8b5cf6;cursor:grab}
       `}</style>
@@ -276,12 +276,14 @@ export function ReelTimeline({
           <div style={{ width: TRACK_LABEL_WIDTH, flexShrink: 0 }} />
           <div style={{ width: TRACK_LABEL_GAP, flexShrink: 0 }} />
           <div style={{ position: "relative", flex: 1 }}>
+            {/* Белая линия с тёмной обводкой (не фиолетовая!) — иначе сливается
+                с активным клипом на видео-лейне, у которого тот же акцент. */}
             <div
               style={{
                 position: "absolute", top: 14, bottom: 0,
                 left: `${duration > 0 ? (current / duration) * 100 : 0}%`,
                 width: 2, marginLeft: -1,
-                background: "#8b5cf6", boxShadow: "0 0 6px rgba(139,92,246,0.8)",
+                background: "#fff", boxShadow: "0 0 0 1px rgba(0,0,0,0.6), 0 0 6px rgba(0,0,0,0.5)",
               }}
             />
             <div
@@ -289,8 +291,9 @@ export function ReelTimeline({
                 position: "absolute", top: 0,
                 left: `${duration > 0 ? (current / duration) * 100 : 0}%`,
                 transform: "translateX(-50%)",
-                background: "#8b5cf6", color: "#0a0a12", fontSize: 9, fontWeight: 700,
+                background: "#fff", color: "#0a0a12", fontSize: 9, fontWeight: 700,
                 lineHeight: 1, padding: "2px 5px", borderRadius: 999, whiteSpace: "nowrap",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.5)",
               }}
             >
               {Math.round(current)}
