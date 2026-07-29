@@ -89,4 +89,12 @@ describe("ReelTimeline", () => {
     fireEvent.click(screen.getAllByRole("button").find((b) => b.hasAttribute("data-nodrag"))!);
     expect(onAudioMuteToggle).toHaveBeenCalledWith("mu", "mu1");
   });
+
+  it("labels проп переопределяет aria-label позиции, дефолт — английский", () => {
+    const { container: c1 } = render(<ReelTimeline videoLane={[]} audioLanes={[]} />);
+    expect(c1.querySelector('[aria-label="Timeline"]')).not.toBeNull();
+
+    const { container: c2 } = render(<ReelTimeline videoLane={[]} audioLanes={[]} labels={{ timeline: "Позиция" }} />);
+    expect(c2.querySelector('[aria-label="Позиция"]')).not.toBeNull();
+  });
 });

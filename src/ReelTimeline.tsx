@@ -25,6 +25,14 @@ export interface ReelTimelineAudioLane {
   items: ReelTimelineAudioItem[];
 }
 
+export interface ReelTimelineLabels {
+  timeline: string;
+}
+
+const DEFAULT_TIMELINE_LABELS: ReelTimelineLabels = {
+  timeline: "Timeline",
+};
+
 export interface ReelTimelineProps {
   videoLane: ReelTimelineClip[];
   audioLanes: ReelTimelineAudioLane[];
@@ -34,6 +42,7 @@ export interface ReelTimelineProps {
   onMoveAudioItem?: (laneId: string, itemId: string, start: number) => void;
   onAudioMuteToggle?: (laneId: string, itemId: string) => void;
   onAudioVolumeChange?: (laneId: string, itemId: string, volume: number) => void;
+  labels?: Partial<ReelTimelineLabels>;
 }
 
 /** Композитный многодорожечный плеер: видео-лейн играет клипы ПОДРЯД (как
@@ -52,7 +61,9 @@ export function ReelTimeline({
   onMoveAudioItem,
   onAudioMuteToggle,
   onAudioVolumeChange,
+  labels,
 }: ReelTimelineProps) {
+  const L = { ...DEFAULT_TIMELINE_LABELS, ...labels };
   const [durations, setDurations] = useState<Record<string, number>>({});
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
@@ -175,7 +186,7 @@ export function ReelTimeline({
 
       <input
         type="range"
-        aria-label="Позиция"
+        aria-label={L.timeline}
         min={0}
         max={duration || 0}
         step={0.05}
