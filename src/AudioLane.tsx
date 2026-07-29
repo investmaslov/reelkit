@@ -68,7 +68,8 @@ export function AudioLane({ label, color, items, duration, onMove, onMuteToggle,
               height: "100%",
               borderRadius: 999,
               background: `${color}55`,
-              border: `1px solid ${color}`,
+              border: it.muted ? "1px solid #fb7185" : `1px solid ${color}`,
+              opacity: it.muted ? 0.45 : 1,
               cursor: "grab",
               display: "flex",
               alignItems: "center",
@@ -81,7 +82,8 @@ export function AudioLane({ label, color, items, duration, onMove, onMuteToggle,
               type="button"
               data-nodrag
               onClick={() => onMuteToggle(it.id)}
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", lineHeight: 0, color: "#fff" }}
+              title={it.muted ? "Unmute" : "Mute"}
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", lineHeight: 0, color: it.muted ? "#fb7185" : "#fff" }}
             >
               {it.muted ? <Icon.VolumeOff size={11} /> : <Icon.Volume size={11} />}
             </button>

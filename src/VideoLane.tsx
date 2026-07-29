@@ -101,18 +101,20 @@ export function VideoLane({ label, items, duration, activeId, onReorder, onMuteT
                 userSelect: "none",
                 overflow: "hidden",
                 whiteSpace: "nowrap",
+                opacity: it.muted ? 0.45 : 1,
                 background: it.id === activeId ? "#8b5cf6" : "rgba(255,255,255,0.14)",
-                outline: it.id === dragId ? "2px solid #8b5cf6" : it.id === overId ? "1px dashed rgba(255,255,255,0.6)" : "none",
+                outline: it.id === dragId ? "2px solid #8b5cf6" : it.id === overId ? "1px dashed rgba(255,255,255,0.6)" : it.muted ? "1px solid #fb7185" : "none",
               }}
             >
               <span>{it.label}</span>
-              <div data-nodrag style={{ display: "flex", alignItems: "center", gap: 2, opacity: 0.75 }}>
+              <div data-nodrag style={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <button
                   type="button"
                   onClick={() => onMuteToggle(it.id)}
-                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "#fff", lineHeight: 0 }}
+                  title={it.muted ? "Unmute" : "Mute"}
+                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: it.muted ? "#fb7185" : "#fff", lineHeight: 0 }}
                 >
-                  {it.muted ? <Icon.VolumeOff size={9} /> : <Icon.Volume size={9} />}
+                  {it.muted ? <Icon.VolumeOff size={10} /> : <Icon.Volume size={9} />}
                 </button>
                 <input
                   type="range"
