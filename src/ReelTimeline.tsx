@@ -152,7 +152,13 @@ export function ReelTimeline({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, background: "#0c0c14", borderRadius: 12, padding: 12 }}>
-      <div style={{ position: "relative", aspectRatio: "9 / 16", maxHeight: 320, margin: "0 auto", background: "#000", borderRadius: 8, overflow: "hidden" }}>
+      {/* width задан ЯВНО (180 = 320*9/16) — без неё коробка не имеет ни
+          одного определённого измерения: родитель flex-column, а auto-отступы
+          margin:"0 auto" отключают дефолтное растяжение по кросс-оси
+          (align-items:stretch), так что aspect-ratio не от чего считать
+          высоту и бокс схлопывается в 0×0 (видео физически не видно, хотя
+          смонтировано и играет). */}
+      <div style={{ position: "relative", width: 180, aspectRatio: "9 / 16", maxHeight: 320, margin: "0 auto", background: "#000", borderRadius: 8, overflow: "hidden" }}>
         {videoLane.map((c) => (
           <video
             key={c.id}
