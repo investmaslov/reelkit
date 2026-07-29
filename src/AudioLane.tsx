@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { Icon } from "./icons";
+import { TRACK_LABEL_WIDTH, TRACK_LABEL_GAP } from "./timelineMath";
 
 export interface AudioLaneItem {
   id: string;
@@ -21,7 +22,7 @@ interface Props {
   onVolumeChange: (itemId: string, volume: number) => void;
 }
 
-const LANE_HEIGHT = 32;
+const LANE_HEIGHT = 26;
 
 /** Одна аудио-дорожка: элементы позиционируются по `start` (независимо, могут
  * перекрываться) — двигаются перетаскиванием по горизонтали (тот же
@@ -50,11 +51,11 @@ export function AudioLane({ label, color, items, duration, onMove, onMuteToggle,
   }
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <span style={{ width: 64, fontSize: 10, color: "rgba(255,255,255,0.7)", flexShrink: 0 }}>{label}</span>
+    <div style={{ display: "flex", alignItems: "center", gap: TRACK_LABEL_GAP }}>
+      <span style={{ width: TRACK_LABEL_WIDTH, fontSize: 10, color: "rgba(255,255,255,0.65)", flexShrink: 0 }}>{label}</span>
       <div
         ref={trackRef}
-        style={{ position: "relative", flex: 1, height: LANE_HEIGHT, background: "rgba(255,255,255,0.06)", borderRadius: 4 }}
+        style={{ position: "relative", flex: 1, height: LANE_HEIGHT, background: "rgba(255,255,255,0.05)", borderRadius: 999 }}
       >
         {items.map((it) => (
           <div
@@ -65,7 +66,7 @@ export function AudioLane({ label, color, items, duration, onMove, onMuteToggle,
               left: `${duration > 0 ? (it.start / duration) * 100 : 0}%`,
               width: `${duration > 0 ? (it.duration / duration) * 100 : 0}%`,
               height: "100%",
-              borderRadius: 4,
+              borderRadius: 999,
               background: `${color}55`,
               border: `1px solid ${color}`,
               cursor: "grab",

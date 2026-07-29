@@ -1,3 +1,10 @@
+/** Ширина колонки подписи дорожки и зазор до самой дорожки — держим в одном
+ * месте: Ruler-обёртка, VideoLane и AudioLane (ReelTimeline.tsx) ОБЯЗАНЫ
+ * совпадать по этим значениям, иначе общая линия-плейхед разъедется с
+ * дорожками (у каждой свой левый отступ). */
+export const TRACK_LABEL_WIDTH = 56;
+export const TRACK_LABEL_GAP = 8;
+
 export interface TimelineItem {
   id: string;
   start: number;

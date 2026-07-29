@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { fmt } from "./time";
 import { Ruler } from "./Ruler";
 import { Icon } from "./icons";
 import { VideoLane, type VideoLaneItem } from "./VideoLane";
 import { AudioLane, type AudioLaneItem } from "./AudioLane";
-import { activeItemAt, layoutSequential, totalDuration, type TimelineItem } from "./timelineMath";
+import {
+  activeItemAt, layoutSequential, totalDuration, TRACK_LABEL_WIDTH, TRACK_LABEL_GAP, type TimelineItem,
+} from "./timelineMath";
 
 export interface ReelTimelineClip {
   id: string;
@@ -27,11 +29,29 @@ export interface ReelTimelineAudioLane {
 
 export interface ReelTimelineLabels {
   timeline: string;
+  /** Подпись строки видео-лейна слева (та же роль, что и `label` у каждого
+   * ReelTimelineAudioLane) — по умолчанию английская, i18n-агностик. */
+  video: string;
 }
 
 const DEFAULT_TIMELINE_LABELS: ReelTimelineLabels = {
   timeline: "Timeline",
+  video: "Video",
 };
+
+/** Одна строка дорожки: узкая колонка-подпись слева + сама дорожка — общая
+ * геометрия с VideoLane/AudioLane (см. TRACK_LABEL_WIDTH/GAP), чтобы
+ * линия-плейхед (см. ниже) выравнивалась со всеми дорожками одинаково.
+ * Используется только для Ruler — у VideoLane/AudioLane та же раскладка уже
+ * встроена внутрь них самих. */
+function TrackRow({ label, children }: { label: string | null; children: ReactNode }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: TRACK_LABEL_GAP }}>
+      <span style={{ width: TRACK_LABEL_WIDTH, flexShrink: 0 }}>{label}</span>
+      <div style={{ flex: 1 }}>{children}</div>
+    </div>
+  );
+}
 
 export interface ReelTimelineProps {
   videoLane: ReelTimelineClip[];
@@ -64,6 +84,7 @@ export function ReelTimeline({
   labels,
 }: ReelTimelineProps) {
   const L = { ...DEFAULT_TIMELINE_LABELS, ...labels };
+  const scrubId = useId().replace(/:/g, "");
   const [durations, setDurations] = useState<Record<string, number>>({});
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
@@ -188,50 +209,96 @@ export function ReelTimeline({
         )}
       </div>
 
-      <Ruler duration={duration} />
+      {/* тонкий скраб — тот же приём инъекции <style>, что и ReelPreview
+          (rk-${scrubId}): нативный range, но перекрашен в тонкую полоску с
+          маленьким кружком-держателем — компактнее нативного вида. */}
+      <style>{`
+        .rk-tl-${scrubId}{-webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:9px;background:rgba(255,255,255,0.14);outline:none;cursor:pointer}
+        .rk-tl-${scrubId}::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:9px;height:9px;border-radius:50%;background:#8b5cf6;cursor:grab}
+        .rk-tl-${scrubId}::-moz-range-thumb{width:9px;height:9px;border:none;border-radius:50%;background:#8b5cf6;cursor:grab}
+      `}</style>
 
-      <input
-        type="range"
-        aria-label={L.timeline}
-        min={0}
-        max={duration || 0}
-        step={0.05}
-        value={current}
-        onChange={(e) => setCurrent(Math.max(0, Math.min(duration, Number(e.target.value))))}
-        style={{ width: "100%" }}
-      />
-
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <button type="button" onClick={() => setPlaying((p) => !p)} style={{ background: "none", border: "none", cursor: "pointer", color: "#fff" }}>
-          {playing ? <Icon.Pause size={18} /> : <Icon.Play size={18} />}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <button type="button" onClick={() => setPlaying((p) => !p)} style={{ background: "none", border: "none", cursor: "pointer", color: "#fff", lineHeight: 0 }}>
+          {playing ? <Icon.Pause size={16} /> : <Icon.Play size={16} />}
         </button>
-        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", fontVariantNumeric: "tabular-nums" }}>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", fontVariantNumeric: "tabular-nums" }}>
           {fmt(current, "cs")} / {fmt(duration, "cs")}
         </span>
       </div>
 
-      <VideoLane
-        items={videoLane.map((c): VideoLaneItem => ({ id: c.id, label: c.label, muted: c.muted, volume: c.volume }))}
-        activeId={activeVideo?.item.id ?? null}
-        onReorder={(ids) => onReorderVideo?.(ids)}
-        onMuteToggle={(id) => onVideoMuteToggle?.(id)}
-        onVolumeChange={(id, v) => onVideoVolumeChange?.(id, v)}
-      />
+      {/* Единый блок дорожек: линейка + скраб + видео-лейн + аудио-лейны —
+          общая геометрия гуттера (TRACK_LABEL_WIDTH/GAP) у всех, поэтому
+          поверх можно нарисовать ОДНУ линию-плейхед, которая не разъезжается
+          ни с одной дорожкой. paddingTop резервирует место под
+          бейдж-таймкод, который едет по линейке вместе с линией. */}
+      <div style={{ position: "relative", paddingTop: 14 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <TrackRow label={null}><Ruler duration={duration} /></TrackRow>
+          <TrackRow label={null}>
+            <input
+              type="range"
+              className={`rk-tl-${scrubId}`}
+              aria-label={L.timeline}
+              min={0}
+              max={duration || 0}
+              step={0.05}
+              value={current}
+              onChange={(e) => setCurrent(Math.max(0, Math.min(duration, Number(e.target.value))))}
+            />
+          </TrackRow>
+          <VideoLane
+            label={L.video}
+            items={videoLane.map((c): VideoLaneItem => ({ id: c.id, label: c.label, muted: c.muted, volume: c.volume, duration: durations[c.id] ?? 0 }))}
+            duration={duration}
+            activeId={activeVideo?.item.id ?? null}
+            onReorder={(ids) => onReorderVideo?.(ids)}
+            onMuteToggle={(id) => onVideoMuteToggle?.(id)}
+            onVolumeChange={(id, v) => onVideoVolumeChange?.(id, v)}
+          />
+          {audioLanes.map((lane) => (
+            <AudioLane
+              key={lane.id}
+              label={lane.label}
+              color={lane.color}
+              duration={duration}
+              items={lane.items.map((it): AudioLaneItem => ({
+                id: it.id, label: it.label, start: it.start, duration: durations[it.id] ?? 0, muted: it.muted, volume: it.volume,
+              }))}
+              onMove={(itemId, start) => onMoveAudioItem?.(lane.id, itemId, start)}
+              onMuteToggle={(itemId) => onAudioMuteToggle?.(lane.id, itemId)}
+              onVolumeChange={(itemId, volume) => onAudioVolumeChange?.(lane.id, itemId, volume)}
+            />
+          ))}
+        </div>
 
-      {audioLanes.map((lane) => (
-        <AudioLane
-          key={lane.id}
-          label={lane.label}
-          color={lane.color}
-          duration={duration}
-          items={lane.items.map((it): AudioLaneItem => ({
-            id: it.id, label: it.label, start: it.start, duration: durations[it.id] ?? 0, muted: it.muted, volume: it.volume,
-          }))}
-          onMove={(itemId, start) => onMoveAudioItem?.(lane.id, itemId, start)}
-          onMuteToggle={(itemId) => onAudioMuteToggle?.(lane.id, itemId)}
-          onVolumeChange={(itemId, volume) => onAudioVolumeChange?.(lane.id, itemId, volume)}
-        />
-      ))}
+        <div aria-hidden style={{ position: "absolute", inset: 0, display: "flex", pointerEvents: "none" }}>
+          <div style={{ width: TRACK_LABEL_WIDTH, flexShrink: 0 }} />
+          <div style={{ width: TRACK_LABEL_GAP, flexShrink: 0 }} />
+          <div style={{ position: "relative", flex: 1 }}>
+            <div
+              style={{
+                position: "absolute", top: 14, bottom: 0,
+                left: `${duration > 0 ? (current / duration) * 100 : 0}%`,
+                width: 2, marginLeft: -1,
+                background: "#8b5cf6", boxShadow: "0 0 6px rgba(139,92,246,0.8)",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute", top: 0,
+                left: `${duration > 0 ? (current / duration) * 100 : 0}%`,
+                transform: "translateX(-50%)",
+                background: "#8b5cf6", color: "#0a0a12", fontSize: 9, fontWeight: 700,
+                lineHeight: 1, padding: "2px 5px", borderRadius: 999, whiteSpace: "nowrap",
+              }}
+            >
+              {Math.round(current)}
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

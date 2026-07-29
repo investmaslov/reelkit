@@ -1,6 +1,6 @@
 {
   "name": "reelkit",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Minimalist React primitives for short-reel preview & timeline editing — a scrub player with sub-second precision, timeline tracks and an editable caption layer.",
   "license": "Apache-2.0",
   "author": {

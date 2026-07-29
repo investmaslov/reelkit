@@ -2,30 +2,56 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { VideoLane } from "./VideoLane";
 
+function item(id: string, label: string, duration: number) {
+  return { id, label, muted: false, volume: 1, duration };
+}
+
 describe("VideoLane", () => {
-  it("рендерит все клипы по label", () => {
+  it("рендерит подпись дорожки и все клипы по label", () => {
     render(
       <VideoLane
-        items={[{ id: "a", label: "1", muted: false, volume: 1 }, { id: "b", label: "2", muted: false, volume: 1 }]}
+        label="Видео"
+        items={[item("a", "1", 5), item("b", "2", 5)]}
+        duration={10}
         activeId={null}
         onReorder={vi.fn()}
         onMuteToggle={vi.fn()}
         onVolumeChange={vi.fn()}
       />,
     );
+    expect(screen.getByText("Видео")).toBeInTheDocument();
     expect(screen.getByText("1")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
+  });
+
+  it("ширина пилюли пропорциональна длительности клипа, а не поровну", () => {
+    const { container } = render(
+      <VideoLane
+        label="Видео"
+        items={[item("a", "1", 2), item("b", "2", 8)]}
+        duration={10}
+        activeId={null}
+        onReorder={vi.fn()}
+        onMuteToggle={vi.fn()}
+        onVolumeChange={vi.fn()}
+      />,
+    );
+    const a = container.querySelector('[data-clip-id="a"]') as HTMLElement;
+    const b = container.querySelector('[data-clip-id="b"]') as HTMLElement;
+    // a = 2/10 = 20% (ниже пола MIN_PCT_WIDTH=6%, значение не проверяем точно —
+    // важно, что b СУЩЕСТВЕННО шире a, т.е. раскладка не поровну).
+    expect(a.style.left).toBe("0%");
+    expect(b.style.left).toBe("20%");
+    expect(parseFloat(b.style.width)).toBeGreaterThan(parseFloat(a.style.width));
   });
 
   it("перетаскивание клипа A на клип C вызывает onReorder с новым порядком", () => {
     const onReorder = vi.fn();
     render(
       <VideoLane
-        items={[
-          { id: "a", label: "1", muted: false, volume: 1 },
-          { id: "b", label: "2", muted: false, volume: 1 },
-          { id: "c", label: "3", muted: false, volume: 1 },
-        ]}
+        label="Видео"
+        items={[item("a", "1", 5), item("b", "2", 5), item("c", "3", 5)]}
+        duration={15}
         activeId={null}
         onReorder={onReorder}
         onMuteToggle={vi.fn()}
@@ -49,7 +75,9 @@ describe("VideoLane", () => {
     const onReorder = vi.fn();
     render(
       <VideoLane
-        items={[{ id: "a", label: "1", muted: false, volume: 1 }, { id: "b", label: "2", muted: false, volume: 1 }]}
+        label="Видео"
+        items={[item("a", "1", 5), item("b", "2", 5)]}
+        duration={10}
         activeId={null}
         onReorder={onReorder}
         onMuteToggle={vi.fn()}
@@ -72,7 +100,9 @@ describe("VideoLane", () => {
     const onReorder = vi.fn();
     render(
       <VideoLane
-        items={[{ id: "a", label: "1", muted: false, volume: 1 }]}
+        label="Видео"
+        items={[item("a", "1", 5)]}
+        duration={5}
         activeId={null}
         onReorder={onReorder}
         onMuteToggle={onMuteToggle}
@@ -88,7 +118,9 @@ describe("VideoLane", () => {
     const onReorder = vi.fn();
     render(
       <VideoLane
-        items={[{ id: "a", label: "1", muted: false, volume: 1 }, { id: "b", label: "2", muted: false, volume: 1 }]}
+        label="Видео"
+        items={[item("a", "1", 5), item("b", "2", 5)]}
+        duration={10}
         activeId={null}
         onReorder={onReorder}
         onMuteToggle={vi.fn()}
