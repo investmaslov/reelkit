@@ -1,4 +1,3 @@
-![Uploading Screenshot at Jul 31 12-54-57.png…]()
 <p align="center">
   <img src="docs/cover.png" alt="reelkit — монтажный редактор: дорожки, переходы, превью" width="900" />
 </p>
