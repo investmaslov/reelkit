@@ -1,19 +1,12 @@
 ![Uploading Screenshot at Jul 31 12-54-57.png…]()
 <p align="center">
-  <!-- Главный кадр: окно монтажа целиком (дорожки, волны, переходы, превью).
-       Положи файл docs/cover.png — или перетащи картинку в редактор README
-       на GitHub и подставь его ссылку в src. -->
-  <img src="docs/cover.png" alt="reelkit — монтажный редактор" width="860" />
+  <img src="docs/cover.png" alt="reelkit — монтажный редактор: дорожки, переходы, превью" width="900" />
 </p>
 
 <table>
   <tr>
-    <!-- Три деталки в ряд: 1) переходы на стыке и их настройка;
-         2) панель музыки (поиск/тренды/прослушка); 3) готовый ролик на
-         карточке (плеер + скачать). Файлы: docs/shot-1.png … shot-3.png. -->
-    <td><img src="docs/shot-1.png" alt="Переходы между клипами" /></td>
-    <td><img src="docs/shot-2.png" alt="Музыка: поиск и тренды" /></td>
-    <td><img src="docs/shot-3.png" alt="Готовый ролик" /></td>
+    <td><img src="docs/shot-1.png" alt="Музыка: поиск, тренды, прослушка" /></td>
+    <td><img src="docs/shot-2.png" alt="Дорожки озвучки" /></td>
   </tr>
 </table>
 
